@@ -30,8 +30,12 @@ module Pipes
 
       def execute(ctx, method)
         ctx.on_start(self, method) if respond_to?(method)
-        public_send(method, ctx)
-        ctx.on_success(self, method) if respond_to?(method)
+        begin
+          public_send(method, ctx)
+          ctx.on_success(self, method) if respond_to?(method)
+        rescue StandardError => e
+          raise unless ctx.on_error(self, method, e)
+        end
       end
     end  # module ClassMethods
   end  # module Pipe

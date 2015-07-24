@@ -28,5 +28,14 @@ module Pipes
     # default this does nothing so if you want to provide a custom callback you
     # should subclass Context and provide a custom implementation.
     def on_success(_klass, _method); end
+
+    # Method `on_error` is called if a Pipe raises an exception. By
+    # default this does nothing so if you want to provide a custom callback you
+    # should subclass Context and provide a custom implementation.
+    # Your custom callback should return a boolean which controls whether the
+    # error is handled (if `true`) or should be raised (if `false`).
+    def on_error(_klass, _method, _exception)
+      false
+    end
   end  # class Context
 end  # module Pipes
