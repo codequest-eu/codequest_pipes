@@ -21,7 +21,7 @@ module Pipes
         new_pipe.include(Pipe)
         new_pipe.define_singleton_method(:method_missing) do |method, *ctx, &_|
           this_pipe.send(:execute, *ctx, method)
-          other.send(:execute, *ctx, method)
+          other.send(:execute, *ctx, method) if other.respond_to?(method)
         end
         new_pipe
       end
@@ -34,7 +34,7 @@ module Pipes
           public_send(method, ctx)
           ctx.on_success(self, method) if respond_to?(method)
         rescue StandardError => e
-          raise unless ctx.on_error(self, method, e)
+          raise unless respond_to?(method) && ctx.on_error(self, method, e)
         end
       end
     end  # module ClassMethods
