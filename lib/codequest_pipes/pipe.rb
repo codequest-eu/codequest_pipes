@@ -28,7 +28,9 @@ module Pipes
 
       private
 
-      def execute(ctx, method)
+      def execute(ctx, method)  # rubocop:disable Metrics/CyclomaticComplexity
+        # Allow passing Hash to a pipe.
+        ctx = Pipes::Context.new(ctx) if ctx.is_a?(Hash)
         ctx.on_start(self, method) if respond_to?(method)
         begin
           public_send(method, ctx)
@@ -36,6 +38,7 @@ module Pipes
         rescue StandardError => e
           raise unless respond_to?(method) && ctx.on_error(self, method, e)
         end
+        ctx  # ...in case one wanted to read directly from a Pipe.
       end
     end  # module ClassMethods
   end  # module Pipe

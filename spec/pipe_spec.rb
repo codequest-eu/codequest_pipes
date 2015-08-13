@@ -117,4 +117,12 @@ describe Pipes::Pipe do
       ])
     end
   end  # context 'with badly-behaved pipes'
+
+  context 'with a relaxed calling convention' do
+    it 'allows hash initialization and direct reading of result' do
+      pipe = Parent | Child | Grandchild
+      result = pipe.call(flow: [])
+      expect(result.flow).to eq(%w(parent child grandchild))
+    end
+  end
 end  # describe Pipes::Pipe

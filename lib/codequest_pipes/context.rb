@@ -19,6 +19,12 @@ module Pipes
       end
     end
 
+    # By default Context is always successful. This can be overridden to provide
+    # a more meaningful implementation, if required.
+    def success?
+      true
+    end
+
     # Method `on_start` is called before a Pipe is started. By default this does
     # nothing so if you want to provide a custom callback you should subclass
     # Context and provide a custom implementation.
