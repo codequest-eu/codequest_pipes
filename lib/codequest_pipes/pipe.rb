@@ -21,7 +21,7 @@ module Pipes
         new_pipe.include(Pipe)
         new_pipe.define_singleton_method(:method_missing) do |method, *ctx, &_|
           this_pipe.send(:execute, *ctx, method)
-          other.send(:execute, *ctx, method) if other.respond_to?(method)
+          other.send(:execute, *ctx, method) unless other == Class
         end
         new_pipe
       end

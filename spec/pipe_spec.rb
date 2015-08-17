@@ -32,6 +32,11 @@ class Grandchild
   end
 end
 
+# NoMethodPipe will break with NoMethodError.
+class NoMethodPipe
+  include Pipes::Pipe
+end
+
 # TrackingContext is a context that tracks execution of subsequent pipe
 # elements.
 class TrackingContext < Pipes::Context
@@ -125,4 +130,11 @@ describe Pipes::Pipe do
       expect(result.flow).to eq(%w(parent child grandchild))
     end
   end
+
+  context 'with a class that does not implement the call method' do
+    it 'raises a NoMethodError' do
+      pipe = Parent | Child | NoMethodPipe
+      expect { pipe.call(flow: []) }.to raise_error(NoMethodError)
+    end
+  end  # context 'with a class that does not implement the call method'
 end  # describe Pipes::Pipe
