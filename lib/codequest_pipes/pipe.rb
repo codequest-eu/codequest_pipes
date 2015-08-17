@@ -19,9 +19,10 @@ module Pipes
         this_pipe = self
         new_pipe = Class.new
         new_pipe.include(Pipe)
+        new_pipe.define_singleton_method(:_comp?) {}
         new_pipe.define_singleton_method(:method_missing) do |method, *ctx, &_|
           this_pipe.send(:execute, *ctx, method)
-          other.send(:execute, *ctx, method) unless other == Class
+          other.send(:execute, *ctx, method) unless other.respond_to?(:_comp?)
         end
         new_pipe
       end
@@ -31,12 +32,12 @@ module Pipes
       def execute(ctx, method)  # rubocop:disable Metrics/CyclomaticComplexity
         # Allow passing Hash to a pipe.
         ctx = Pipes::Context.new(ctx) if ctx.is_a?(Hash)
-        ctx.on_start(self, method) if respond_to?(method)
+        ctx.on_start(self, method) unless respond_to?(:_comp?)
         begin
           public_send(method, ctx)
-          ctx.on_success(self, method) if respond_to?(method)
+          ctx.on_success(self, method) unless respond_to?(:_comp?)
         rescue StandardError => e
-          raise unless respond_to?(method) && ctx.on_error(self, method, e)
+          raise unless !respond_to?(:_comp?) && ctx.on_error(self, method, e)
         end
         ctx  # ...in case one wanted to read directly from a Pipe.
       end

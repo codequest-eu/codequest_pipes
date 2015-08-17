@@ -131,7 +131,18 @@ describe Pipes::Pipe do
     end
   end
 
-  context 'with a class that does not implement the call method' do
+  context 'with pipes created on the fly' do
+    it 'behaves as with normal pipes' do
+      dynamic_grandchild = Pipes::Closure.define(:call) do |ctx|
+        ctx.flow << 'dynamic_grandchild'
+      end
+      pipe = Parent | dynamic_grandchild | Child
+      result = pipe.call(flow: [])
+      expect(result.flow).to eq(%w(parent dynamic_grandchild child))
+    end
+  end
+
+  context 'with a class that does not implement the `call` method' do
     it 'raises a NoMethodError' do
       pipe = Parent | Child | NoMethodPipe
       expect { pipe.call(flow: []) }.to raise_error(NoMethodError)
