@@ -22,7 +22,7 @@ module Pipes
         new_pipe.define_singleton_method(:_comp?) {}
         new_pipe.define_singleton_method(:method_missing) do |method, *ctx, &_|
           this_pipe.send(:execute, *ctx, method)
-          other.send(:execute, *ctx, method) unless other.respond_to?(:_comp?)
+          other.send(:execute, *ctx, method)
         end
         new_pipe
       end

@@ -32,6 +32,14 @@ class Grandchild
   end
 end
 
+# GrandGrandchild is a dummy test class.
+class GrandGrandchild
+  include Pipes::Pipe
+  def self.call(ctx)
+    ctx.flow.push('grand-grandchild')
+  end
+end
+
 # NoMethodPipe will break with NoMethodError.
 class NoMethodPipe
   include Pipes::Pipe
@@ -148,4 +156,26 @@ describe Pipes::Pipe do
       expect { pipe.call(flow: []) }.to raise_error(NoMethodError)
     end
   end  # context 'with a class that does not implement the call method'
+
+  context 'with combined pipes' do
+    it 'behaves as with normal pipes' do
+      pipe1 = Parent | Child
+      pipe2 = Grandchild | GrandGrandchild
+      result = (pipe1 | pipe2).call(flow: [])
+      expect(result.flow).to eq(%w(parent child grandchild grand-grandchild))
+    end
+
+    it 'behaves as with normal pipes' do
+      pipe = Child | Grandchild
+      result = (Parent | pipe | GrandGrandchild).call(flow: [])
+      expect(result.flow).to eq(%w(parent child grandchild grand-grandchild))
+    end
+
+    it 'respects NoMethodError' do
+      pipe1 = Parent | Child
+      pipe2 = NoMethodPipe | Grandchild
+      expect { (pipe1 | pipe2).call(flow: []) }
+        .to raise_error(NoMethodError)
+    end
+  end  # context 'with two combined pipes'
 end  # describe Pipes::Pipe
