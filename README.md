@@ -67,7 +67,7 @@ context = PaymentContext.new(user: u)
 
 TODO
 
-Made with ❤️ by [code quest](http://www.codequest.com)
+Made with <3️ by [code quest](http://www.codequest.com)
 
 
 
