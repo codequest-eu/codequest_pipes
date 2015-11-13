@@ -10,7 +10,7 @@ To start using Pipes, add the library to your Gemfile. This project is currently
 not available on RubyGems.
 
 ```
-gem "codequest_pipes", git: "codequest-eu/codequest_pipes"
+gem "codequest_pipes", github: "codequest-eu/codequest_pipes"
 ```
 
 ## Pipe
