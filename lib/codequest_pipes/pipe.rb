@@ -17,14 +17,16 @@ module Pipes
     module ClassMethods
       def |(other)
         this_pipe = self
-        new_pipe = Class.new
-        new_pipe.send(:include, Pipe)
-        new_pipe.define_singleton_method(:_comp?) {}
-        new_pipe.define_singleton_method(:method_missing) do |method, *ctx, &_|
-          this_pipe.send(:execute, *ctx, method)
-          other.send(:execute, *ctx, method)
+        Class.new do
+          include Pipe
+
+          define_singleton_method(:_comp?) {}
+
+          define_singleton_method(:method_missing) do |method, *ctx, &_|
+            this_pipe.send(:execute, *ctx, method)
+            other.send(:execute, *ctx, method)
+          end
         end
-        new_pipe
       end
 
       private
