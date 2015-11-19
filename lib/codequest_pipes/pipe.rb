@@ -18,7 +18,7 @@ module Pipes
       def |(other)
         this_pipe = self
         new_pipe = Class.new
-        new_pipe.include(Pipe)
+        new_pipe.send(:include, Pipe)
         new_pipe.define_singleton_method(:_comp?) {}
         new_pipe.define_singleton_method(:method_missing) do |method, *ctx, &_|
           this_pipe.send(:execute, *ctx, method)
