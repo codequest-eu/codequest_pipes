@@ -4,7 +4,7 @@ module Pipes
   class Closure
     def self.define(name, &block)
       new_pipe = Class.new
-      new_pipe.include(Pipe)
+      new_pipe.send(:include, Pipe)
       new_pipe.define_singleton_method(name, block)
       new_pipe
     end
