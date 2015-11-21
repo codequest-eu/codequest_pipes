@@ -6,43 +6,43 @@ module Pipes
       base.extend(ClassMethods)
     end
 
-    # The initializer here is overridden so that you can not instantiate classes
-    # that mix in Pipe.
-    def initialize
-      fail InstanceError, 'Pipes are not supposed to be instantiated'
-    end
-
     # ClassMethods provides the most important feature of the whole libary -
     # the Unix-like `pipe` operator.
     module ClassMethods
       def |(other)
-        this_pipe = self
+        this = self
         Class.new do
           include Pipe
-
-          define_singleton_method(:_comp?) {}
-
-          define_singleton_method(:method_missing) do |method, *ctx, &_|
-            this_pipe.send(:execute, *ctx, method)
-            other.send(:execute, *ctx, method)
-          end
+          _combine(this, other)
         end
       end
 
-      private
-
-      def execute(ctx, method)  # rubocop:disable Metrics/CyclomaticComplexity
-        # Allow passing Hash to a pipe.
-        ctx = Pipes::Context.new(ctx) if ctx.is_a?(Hash)
-        ctx.on_start(self, method) unless respond_to?(:_comp?)
-        begin
-          public_send(method, ctx)
-          ctx.on_success(self, method) unless respond_to?(:_comp?)
-        rescue StandardError => e
-          raise unless !respond_to?(:_comp?) && ctx.on_error(self, method, e)
-        end
-        ctx  # ...in case one wanted to read directly from a Pipe.
+      def require_ctx(*args)
+        _required_context_elements.push(*args)
       end
-    end  # module ClassMethods
-  end  # module Pipe
-end  # module Pipes
+
+      def _combine(first, second)
+        define_singleton_method(:call) do |ctx|
+          first._safely_call(ctx)
+          second._safely_call(ctx)
+        end
+      end
+
+      def _safely_call(ctx)
+        _validate_ctx(ctx)
+        call(ctx)
+      end
+
+      def _required_context_elements
+        @required_context_elements ||= []
+      end
+
+      def _validate_ctx(ctx)
+        _required_context_elements.each do |element|
+          next if ctx.respond_to?(element)
+          fail MissingContext, "context does not respond to '#{element}'"
+        end
+      end
+    end # module ClassMethods
+  end # module Pipe
+end # module Pipes
