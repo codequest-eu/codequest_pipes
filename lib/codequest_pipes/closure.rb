@@ -3,10 +3,7 @@ module Pipes
   # Pipes::Pipe.
   class Closure
     def self.define(&block)
-      Class.new do
-        include Pipe
-        define_singleton_method(:call, block)
-      end
+      Class.new(Pipe) { define_method(:call, block) }
     end
   end # class Closure
 end # module Pipes

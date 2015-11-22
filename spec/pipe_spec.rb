@@ -1,13 +1,11 @@
 require 'spec_helper'
 
 # Parent is a dummy test class.
-class Parent
-  include Pipes::Pipe
+class Parent < Pipes::Pipe
+  require_context :flow
 
-  require_ctx :flow
-
-  def self.call(ctx)
-    ctx.flow.push(name)
+  def call
+    flow.push(self.class.name)
   end
 end # class Parent
 
@@ -16,37 +14,34 @@ class Grandchild < Parent; end
 class GrandGrandchild < Parent; end
 
 # BadApple will break.
-class BadApple
-  include Pipes::Pipe
-  def self.call(_ctx)
+class BadApple < Pipes::Pipe
+  def call
     fail StandardError
   end
 end
 
 # NoMethodPipe will break with NoMethodError.
-class NoMethodPipe
-  include Pipes::Pipe
-end
+class NoMethodPipe < Pipes::Pipe; end
 
 describe Pipes::Pipe do
   let(:ctx) { Pipes::Context.new(flow: []) }
 
   subject { pipe.call(ctx) }
 
-  context 'with well-behaved pipes' do
+  describe 'normal flow' do
     let(:pipe) { Parent | Child | Grandchild }
 
     it 'executes the pipe left to right' do
       expect { subject }.to change { ctx.flow }
         .from([]).to %w(Parent Child Grandchild)
     end
-  end # context 'with well-behaved pipes'
+  end # describe 'normal flow'
 
-  context 'when a pipe raises an exception' do
+  describe 'pipe raising an exception' do
     let(:pipe) { Parent | BadApple | Child }
 
-    it 'raises the exception' do
-      expect { pipe.call(ctx) }.to raise_error(StandardError)
+    it 'raises StandardError' do
+      expect { pipe.call(ctx) }.to raise_error StandardError
     end
 
     it 'stores the result of execution so far in the context' do
@@ -56,11 +51,42 @@ describe Pipes::Pipe do
         .from([]).to(['Parent'])
       # rubocop:enable Style/RescueModifier
     end
-  end # context 'with badly-behaved pipes'
+  end # describe 'pipe raising an exception'
 
-  context 'with pipes created on the fly' do
+  describe '.provide_context' do
+    context 'when context element provided' do
+      class ProvidingChild < Parent
+        provide_context :bacon
+
+        def call
+          super
+          add(bacon: true)
+        end
+      end # class ProvideChild
+
+      let(:pipe) { Parent | ProvidingChild }
+
+      it 'does not raise' do
+        expect { subject }.to_not raise_error
+      end
+    end # context 'when context element provided'
+
+    context 'when context element not provided' do
+      class NotProvidingChild < Parent
+        provide_context :bacon
+      end
+
+      let(:pipe) { Parent | NotProvidingChild }
+
+      it 'raises MissingContext' do
+        expect { subject }.to raise_error Pipes::MissingContext
+      end
+    end # context 'when context element not provided'
+  end # describe '.provide_context'
+
+  describe 'pipes declared using Pipe::Closure' do
     let(:dynamic_grandchild) do
-      Pipes::Closure.define { |ctx| ctx.flow << 'bacon' }
+      Pipes::Closure.define { context.flow << 'bacon' }
     end
     let(:pipe) { Parent | dynamic_grandchild | Child }
 
@@ -69,17 +95,17 @@ describe Pipes::Pipe do
         .to change { ctx.flow }
         .from([]).to %w(Parent bacon Child)
     end
-  end
+  end # describe 'pipes declared using Pipe::Closure'
 
-  context 'with a class that does not implement the `call` method' do
+  describe 'pipe with a missing `call` method' do
     let(:pipe) { Parent | Child | NoMethodPipe }
 
-    it 'raises a NoMethodError' do
-      expect { subject }.to raise_error(NoMethodError)
+    it 'raises a Pipes::MissingCallMethod error' do
+      expect { subject }.to raise_error Pipes::MissingCallMethod
     end
-  end # context 'with a class that does not implement the call method'
+  end # describe 'pipe with a missing `call` method'
 
-  context 'with combined pipes' do
+  describe 'combined pipes' do
     let(:first)  { Parent | Child }
     let(:second) { Grandchild | GrandGrandchild }
     let(:pipe)   { first | second }
@@ -90,12 +116,12 @@ describe Pipes::Pipe do
         .from([]).to %w(Parent Child Grandchild GrandGrandchild)
     end
 
-    context 'with broken combination' do
+    describe 'broken combination' do
       let(:second) { NoMethodPipe | Grandchild }
 
       it 'raises error from a broken pipe' do
-        expect { subject }.to raise_error NoMethodError
+        expect { subject }.to raise_error Pipes::MissingCallMethod
       end
-    end # context 'with broken combination'
-  end # context 'with combined pipes'
+    end # describe 'broken combination'
+  end # describe 'combined pipes'
 end # describe Pipes::Pipe
