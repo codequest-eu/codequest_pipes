@@ -1,8 +1,6 @@
-# Pipes
+# Pipes [![Build Status](https://travis-ci.org/codequest-eu/codequest_pipes.svg?branch=master)](https://travis-ci.org/codequest-eu/codequest_pipes) [![codebeat badge](https://codebeat.co/badges/73f1bb7f-516f-4fc5-b241-daea42c7badd)](https://codebeat.co/projects/codequest_pipes-master-ab1a7c5f-ad5f-425a-a0f0-e56e13a04876)
 
 Pipes provide a Unix-like way to chain business objects (interactors) in Ruby.
-
-[![Build Status](https://travis-ci.org/codequest-eu/codequest_pipes.svg?branch=master)](https://travis-ci.org/codequest-eu/codequest_pipes)
 
 ## Installation
 
