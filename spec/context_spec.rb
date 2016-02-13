@@ -15,4 +15,4 @@ describe Pipes::Context do
         .to raise_error(Pipes::Context::Override)
     end
   end
-end  # describe Context
+end # describe Context

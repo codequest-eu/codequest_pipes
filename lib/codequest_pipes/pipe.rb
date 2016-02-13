@@ -1,48 +1,76 @@
 module Pipes
   # Pipe is a mix-in which turns a class into a Pipes building block (Pipe).
   # A Pipe can only have class methods since it can't be instantiated.
-  module Pipe
-    def self.included(base)
-      base.extend(ClassMethods)
+  class Pipe
+    attr_reader :context
+
+    def initialize(ctx)
+      @context = ctx
     end
 
-    # The initializer here is overridden so that you can not instantiate classes
-    # that mix in Pipe.
-    def initialize
-      fail InstanceError, 'Pipes are not supposed to be instantiated'
+    def call
+      fail MissingCallMethod
     end
 
-    # ClassMethods provides the most important feature of the whole libary -
-    # the Unix-like `pipe` operator.
-    module ClassMethods
-      def |(other)
-        this_pipe = self
-        Class.new do
-          include Pipe
-
-          define_singleton_method(:_comp?) {}
-
-          define_singleton_method(:method_missing) do |method, *ctx, &_|
-            this_pipe.send(:execute, *ctx, method)
-            other.send(:execute, *ctx, method)
-          end
-        end
+    def self.|(other)
+      this = self
+      Class.new(Pipe) do
+        _combine(this, other)
       end
+    end
 
-      private
+    def self.call(ctx)
+      _validate_ctx(_required_context_elements, ctx)
+      new(ctx).call
+      _validate_ctx(_provided_context_elements, ctx)
+      ctx
+    end
 
-      def execute(ctx, method)  # rubocop:disable Metrics/CyclomaticComplexity
-        # Allow passing Hash to a pipe.
-        ctx = Pipes::Context.new(ctx) if ctx.is_a?(Hash)
-        ctx.on_start(self, method) unless respond_to?(:_comp?)
-        begin
-          public_send(method, ctx)
-          ctx.on_success(self, method) unless respond_to?(:_comp?)
-        rescue StandardError => e
-          raise unless !respond_to?(:_comp?) && ctx.on_error(self, method, e)
-        end
-        ctx  # ...in case one wanted to read directly from a Pipe.
+    def self.require_context(*args)
+      _required_context_elements.push(*args)
+    end
+
+    def self.provide_context(*args)
+      _provided_context_elements.push(*args)
+    end
+
+    def self._combine(first, second)
+      _check_interface(first)
+      _check_interface(second)
+      define_singleton_method(:call) do |ctx|
+        first.call(ctx)
+        second.call(ctx)
       end
-    end  # module ClassMethods
-  end  # module Pipe
-end  # module Pipes
+    end
+    private_class_method :_combine
+
+    def self._check_interface(klass)
+      fail MissingCallMethod unless klass.instance_methods.include?(:call)
+    end
+    private_class_method :_check_interface
+
+    def self._required_context_elements
+      @required_context_elements ||= []
+    end
+    private_class_method :_required_context_elements
+
+    def self._provided_context_elements
+      @provided_context_elements ||= []
+    end
+    private_class_method :_provided_context_elements
+
+    def self._validate_ctx(collection, ctx)
+      collection.each do |element|
+        next if ctx.respond_to?(element)
+        fail MissingContext, "context does not respond to '#{element}'"
+      end
+    end
+    private_class_method :_validate_ctx
+
+    private
+
+    def method_missing(name, *args, &block)
+      context.send(name, *args, &block)
+    end
+  end # class Pipe
+end # module Pipes
