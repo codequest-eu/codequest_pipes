@@ -45,7 +45,7 @@ Note how we've only had to implement the `call` method for the magic to start ha
 
 Each Pipe requires an instance `Pipes::Context` to be passed on `.call` invokation. It provides append-only data container for Pipes: you can add data to a context at any time using the `add` method but the same call will raise an error if you try to modify an existing key.
 
-Made with <3 by [code quest](http://www.codequest.com)
+Made with ❤️ by [code quest](http://www.codequest.com)
 
 
 
