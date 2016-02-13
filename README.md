@@ -4,11 +4,10 @@ Pipes provide a Unix-like way to chain business objects (interactors) in Ruby.
 
 ## Installation
 
-To start using Pipes, add the library to your Gemfile. This project is currently
-not available on RubyGems.
+To start using Pipes, add the library to your `Gemfile` and run `bundle install`.
 
 ```ruby
-gem "codequest_pipes", github: "codequest-eu/codequest_pipes"
+gem 'codequest_pipes'
 ```
 
 ## High-level usage example
