@@ -32,6 +32,14 @@ module Pipes
       end
     end
 
+    # Quietly fail the pipe, allowing the error to be saved and accessed from
+    # the Context.
+    #
+    # @param error [Any] Error to be set.
+    def halt(error = 'Execution stopped')
+      @error = error
+    end
+
     # Explicitly fail the pipe, allowing the error to be saved and accessed from
     # the Context.
     #
@@ -39,7 +47,7 @@ module Pipes
     #
     # @raise [ExecutionTerminated]
     def terminate(error)
-      @error = error
+      halt(error)
       fail ExecutionTerminated, error
     end
 

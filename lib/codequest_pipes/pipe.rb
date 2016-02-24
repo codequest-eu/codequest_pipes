@@ -20,10 +20,10 @@ module Pipes
     end
 
     def self.call(ctx)
+      return ctx if ctx.error
       _validate_ctx(_required_context_elements, ctx)
       new(ctx).call
       _validate_ctx(_provided_context_elements, ctx)
-      ctx
     end
 
     def self.require_context(*args)
