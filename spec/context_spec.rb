@@ -20,5 +20,11 @@ describe Pipes::Context do
       expect(subject.inspect)
         .to match(/bacon=\"yum\", raisins=\"bleh\", @error=nil/)
     end
+
+    it 'lists nested contexts' do
+      subject.add(nested: Pipes::Context.new(foo: 'bar'))
+      expect(subject.inspect)
+        .to match(/nested=#<Pipes::Context:0x\w+ foo="bar", @error=nil>,/)
+    end
   end # describe '#inspect'
 end # describe Pipes::Context
