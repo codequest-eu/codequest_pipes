@@ -1,18 +1,24 @@
 require 'spec_helper'
 
 describe Pipes::Context do
-  let(:ctx) { Pipes::Context.new }
-
   describe '#add' do
     it 'allows adding new fields' do
-      ctx.add(key: 'val')
-      expect(ctx.key).to eq('val')
+      subject.add(key: 'val')
+      expect(subject.key).to eq('val')
     end
 
     it 'does not allow rewriting existing fields' do
-      ctx.add(key: 'val')
-      expect { ctx.add(key: 'other_val') }
+      subject.add(key: 'val')
+      expect { subject.add(key: 'other_val') }
         .to raise_error(Pipes::Context::Override)
     end
-  end
-end # describe Context
+  end # describe '#add'
+
+  describe '#to_s' do
+    it 'lists all fields' do
+      subject.add(bacon: 'yum', raisins: 'bleh')
+      expect(subject.inspect)
+        .to match(/bacon=\"yum\", raisins=\"bleh\", @error=nil/)
+    end
+  end # describe '#to_s'
+end # describe Pipes::Context

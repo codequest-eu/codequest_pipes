@@ -65,5 +65,15 @@ module Pipes
     def failure?
       !success?
     end
+
+    # Printable string representation of the context
+    #
+    # @return [String]
+    def inspect
+      keys = methods - Object.methods - Pipes::Context.instance_methods
+      fields = keys.map { |key| "#{key}=#{public_send(key).inspect}" }
+      fields << "@error=#{@error.inspect}"
+      "#<Pipes::Context:0x007ffd5d675630 #{fields.join(', ')}>"
+    end
   end # class Context
 end # module Pipes
