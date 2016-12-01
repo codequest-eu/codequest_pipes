@@ -14,11 +14,11 @@ describe Pipes::Context do
     end
   end # describe '#add'
 
-  describe '#to_s' do
+  describe '#inspect' do
     it 'lists all fields' do
       subject.add(bacon: 'yum', raisins: 'bleh')
       expect(subject.inspect)
         .to match(/bacon=\"yum\", raisins=\"bleh\", @error=nil/)
     end
-  end # describe '#to_s'
+  end # describe '#inspect'
 end # describe Pipes::Context
