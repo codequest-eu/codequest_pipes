@@ -65,5 +65,17 @@ module Pipes
     def failure?
       !success?
     end
+
+    # Printable string representation of the context
+    # object_id_hex explained: http://stackoverflow.com/a/2818916/3526316
+    #
+    # @return [String]
+    def inspect
+      keys = methods - Object.methods - Pipes::Context.instance_methods
+      fields = keys.map { |key| "#{key}=#{public_send(key).inspect}" }
+      fields << "@error=#{@error.inspect}"
+      object_id_hex = '%x' % (object_id << 1)
+      "#<Pipes::Context:0x00#{object_id_hex} #{fields.join(', ')}>"
+    end
   end # class Context
 end # module Pipes
