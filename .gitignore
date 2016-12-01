@@ -1,3 +1,4 @@
+.env
 .ruby-version
 .ruby-gemset
 *.gem
@@ -8,6 +9,7 @@
 Gemfile.lock
 InstalledFiles
 _yardoc
+codeship.aes
 coverage
 doc/
 lib/bundler/man

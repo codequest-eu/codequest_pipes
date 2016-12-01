@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.homepage    = 'https://github.com/codequest-eu/codequest_pipes'
   spec.license     = 'MIT'
 
-  spec.files      = `git ls-files`.split($RS)
+  spec.files      = Dir['lib/**/*.rb'] + Dir['spec/**/*.rb']
   spec.test_files = spec.files.grep(/^spec/)
 
   spec.add_development_dependency 'bundler', '~> 1.6', '>= 1.6.9'
