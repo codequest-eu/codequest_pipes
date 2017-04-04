@@ -20,7 +20,8 @@ steps:
   push_to_rubygems:
     title: 'Push the gem to Rubygems'
     image: ${{build_image}}
-    commands: ./push.sh
+    commands:
+      - ./push.sh
     when:
       branch:
         only:
