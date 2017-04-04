@@ -1,0 +1,28 @@
+version: '1.0'
+
+steps:
+
+  build_image:
+    title: 'Build image'
+    type: build
+    image_name: codequest/pipes
+
+  test_library:
+    title: 'Test the gem'
+    image: ${{build_image}}
+    commands:
+      - bundle exec rspec
+    when:
+      branch:
+        ignore:
+          - master
+
+  push_to_rubygems:
+    title: 'Push the gem to Rubygems'
+    image: ${{build_image}}
+    commands:
+      - ./push.sh
+    when:
+      branch:
+        only:
+          - master
