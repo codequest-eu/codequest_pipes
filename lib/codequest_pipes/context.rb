@@ -1,10 +1,10 @@
+require 'codequest_pipes/context/error_collector'
+
 module Pipes
   # Context is an object used to pass data between Pipes. It behaves like an
   # OpenStruct except you can write a value only once - this way we prevent
   # context keys from being overwritten.
   class Context
-    attr_reader :error
-
     # Override is an exception raised when an attempt is made to override an
     # existing Context property.
     class Override < ::StandardError; end
@@ -18,7 +18,7 @@ module Pipes
     # @param values [Hash]
     def initialize(values = {})
       add(values)
-      @error = nil
+      @error_collector = ErrorCollector.new
     end
 
     # Method `add` allows adding new properties (as a Hash) to the Context.
@@ -32,23 +32,23 @@ module Pipes
       end
     end
 
-    # Quietly fail the pipe, allowing the error to be saved and accessed from
-    # the Context.
-    #
-    # @param error [Any] Error to be set.
-    def halt(error = 'Execution stopped')
-      @error = error
+    # Quietly fail the pipe.
+    def halt
+      @halted = true
     end
 
-    # Explicitly fail the pipe, allowing the error to be saved and accessed from
-    # the Context.
+    # Check if the Context is halted.
     #
-    # @param error [Any] Error to be set.
+    # @return [Boolean] halt status.
+    def halted?
+      @halted
+    end
+
+    # Explicitly fail the pipe.
     #
     # @raise [ExecutionTerminated]
-    def terminate(error)
-      halt(error)
-      fail ExecutionTerminated, error
+    def terminate
+      fail ExecutionTerminated
     end
 
     # Check if the Context finished successfully.
@@ -56,7 +56,7 @@ module Pipes
     #
     # @return [Boolean] Success status.
     def success?
-      @error.nil?
+      errors.empty?
     end
 
     # Check if the Context failed.
@@ -73,9 +73,28 @@ module Pipes
     def inspect
       keys = methods - Object.methods - Pipes::Context.instance_methods
       fields = keys.map { |key| "#{key}=#{public_send(key).inspect}" }
-      fields << "@error=#{@error.inspect}"
+      fields << "@errors=#{@errors.inspect}"
       object_id_hex = '%x' % (object_id << 1)
       "#<Pipes::Context:0x00#{object_id_hex} #{fields.join(', ')}>"
     end
+
+    # Return errors from ErrorCollector object.
+    #
+    # @return [Hash]
+    def errors
+      error_collector.errors
+    end
+
+    # Add errors to ErrorCollector object.
+    # It doesn't fail the pipe as opposed to `halt` and `terminate` methods.
+    #
+    # @param collectable_errors [Hash]
+    def add_errors(collectable_errors)
+      error_collector.add(collectable_errors)
+    end
+
+    private
+
+    attr_reader :error_collector
   end # class Context
 end # module Pipes

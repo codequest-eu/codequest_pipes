@@ -13,7 +13,7 @@ describe 'expect(...).to match(pipe_context(expected))' do
   shared_examples_for 'fails_with_message' do |message|
     it 'fails' do
       expected_message =
-        message || /expected #<Pipes::Context:.+ @error=nil> to match/
+        message || /expected #<Pipes::Context:.+ @errors=nil> to match/
       expect { expect(ctx).to match(pipe_context(expected)) }
         .to fail_with(expected_message)
     end

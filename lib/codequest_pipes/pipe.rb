@@ -20,7 +20,7 @@ module Pipes
     end
 
     def self.call(ctx)
-      return ctx if ctx.error
+      return ctx if ctx.halted?
       _validate_ctx(_required_context_elements, ctx)
       new(ctx).call
       _validate_ctx(_provided_context_elements, ctx)
