@@ -32,22 +32,19 @@ module Pipes
       end
     end
 
-    # Quietly fail the pipe.
-    def halt
-      @halted = true
-    end
-
-    # Check if the Context is halted.
+    # Quietly fail the pipe. The error will be passed to the error_collector
+    # and stored in the :base errors collection.
     #
-    # @return [Boolean] halt status.
-    def halted?
-      @halted
+    ## @param error [String]
+    def halt(error = 'Execution stopped')
+      add_errors(base: error)
     end
 
     # Explicitly fail the pipe.
     #
     # @raise [ExecutionTerminated]
-    def terminate
+    def terminate(error)
+      halt(error)
       fail ExecutionTerminated
     end
 
@@ -83,6 +80,15 @@ module Pipes
     # @return [Hash]
     def errors
       error_collector.errors
+    end
+
+    # This method is added to maintain backwards compatibility - previous
+    # versions implemented a single @error instance variable of String for error
+    # storage.
+    #
+    # @return [String]
+    def error
+      errors[:base]&.first
     end
 
     # Add errors to ErrorCollector object.

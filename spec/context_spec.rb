@@ -41,4 +41,11 @@ describe Pipes::Context do
       )
     end
   end # describe '#add_errors'
+
+  describe '#halt' do
+    it 'adds error to error collector :base' do
+      subject.halt('Some error')
+      expect(subject.error).to eq('Some error')
+    end
+  end # describe '#halt'
 end # describe Pipes::Context
