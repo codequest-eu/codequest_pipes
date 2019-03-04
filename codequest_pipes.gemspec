@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name    = 'codequest_pipes'
-  spec.version = '0.3.1.1'
+  spec.version = '0.3.2'
 
   spec.author      = 'codequest'
   spec.email       = 'hello@codequest.com'
