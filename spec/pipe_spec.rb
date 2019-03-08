@@ -82,6 +82,40 @@ describe Pipes::Pipe do
         expect { subject }.to raise_error Pipes::MissingContext
       end
     end # context 'when context element not provided'
+
+    context 'when context element with invalid type provided' do
+      class ProvidingInvalidChild < Parent
+        provide_context :bacon, eggs: Numeric
+
+        def call
+          super
+          add(bacon: true, eggs: "yes, please")
+        end
+      end
+
+      let(:pipe) { Parent | ProvidingInvalidChild }
+
+      it 'raises InvalidType' do
+        expect { subject }.to raise_error Pipes::InvalidType
+      end
+    end # context 'when context element with invalid type provided'
+
+    context 'when context element with valid type provided' do
+      class ProvidingValidChild < Parent
+        provide_context :bacon, eggs: Numeric
+
+        def call
+          super
+          add(bacon: true, eggs: 4)
+        end
+      end # class ProvideChild
+
+      let(:pipe) { Parent | ProvidingValidChild }
+
+      it 'does not raise' do
+        expect { subject }.to_not raise_error
+      end
+    end # context 'when context element with valid type provided'
   end # describe '.provide_context'
 
   describe 'pipes declared using Pipe::Closure' do
