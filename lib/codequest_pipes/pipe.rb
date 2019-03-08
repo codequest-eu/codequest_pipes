@@ -26,12 +26,18 @@ module Pipes
       _validate_ctx(_provided_context_elements, ctx)
     end
 
-    def self.require_context(*args)
-      _required_context_elements.push(*args)
+    def self.require_context(*args, **kwargs)
+      _required_context_elements.merge!(
+        **args.map { |a| [a, nil] }.to_h,
+        **kwargs
+      )
     end
 
-    def self.provide_context(*args)
-      _provided_context_elements.push(*args)
+    def self.provide_context(*args, **kwargs)
+      _provided_context_elements.merge!(
+        **args.map { |a| [a, nil] }.to_h,
+        **kwargs
+      )
     end
 
     def self._combine(first, second)
@@ -50,22 +56,35 @@ module Pipes
     private_class_method :_check_interface
 
     def self._required_context_elements
-      @required_context_elements ||= []
+      @required_context_elements ||= {}
     end
     private_class_method :_required_context_elements
 
     def self._provided_context_elements
-      @provided_context_elements ||= []
+      @provided_context_elements ||= {}
     end
     private_class_method :_provided_context_elements
 
     def self._validate_ctx(collection, ctx)
-      collection.each do |element|
-        next if ctx.respond_to?(element)
-        fail MissingContext, "context does not respond to '#{element}'"
+      collection.each do |element, cls|
+        _raise_missing_context(element) unless ctx.respond_to?(element)
+        next unless cls
+        obj = ctx.public_send(element)
+        _raise_invalid_type(element, obj, cls) unless obj.is_a?(cls)
       end
     end
     private_class_method :_validate_ctx
+
+    def self._raise_missing_context(element)
+      raise MissingContext, "context does not respond to '#{element}'"
+    end
+    private_class_method :_raise_missing_context
+
+    def self._raise_invalid_type(element, obj, cls)
+      raise InvalidType,
+        "'#{element}' has invalid type #{obj.class} (expected: #{cls})"
+    end
+    private_class_method :_raise_invalid_type
 
     private
 

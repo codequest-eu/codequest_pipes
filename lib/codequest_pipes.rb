@@ -5,4 +5,5 @@ require 'codequest_pipes/pipe'
 module Pipes
   class MissingCallMethod < ::Exception; end
   class MissingContext < ::Exception; end
+  class InvalidType < ::Exception; end
 end # module Pipes
