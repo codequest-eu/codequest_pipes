@@ -33,8 +33,9 @@ module Pipes
     end
 
     # Quietly fail the pipe.
-    def halt
+    def halt(error = 'Execution stopped')
       @halted = true
+      add_errors(base: error)
     end
 
     # Check if the Context is halted.
@@ -44,10 +45,20 @@ module Pipes
       @halted
     end
 
+    # This method is added to maintain backwards compatibility - previous
+    # versions implemented a single @error instance variable of String for error
+    # storage.
+    #
+    # @return [String]
+    def error
+      errors[:base]&.last
+    end
+
     # Explicitly fail the pipe.
     #
     # @raise [ExecutionTerminated]
-    def terminate
+    def terminate(error)
+      halt(error)
       fail ExecutionTerminated
     end
 
