@@ -27,17 +27,11 @@ module Pipes
     end
 
     def self.require_context(*args, **kwargs)
-      _required_context_elements.merge!(
-        **args.map { |a| [a, nil] }.to_h,
-        **kwargs
-      )
+      _merge_context_elements(_required_context_elements, args, kwargs)
     end
 
     def self.provide_context(*args, **kwargs)
-      _provided_context_elements.merge!(
-        **args.map { |a| [a, nil] }.to_h,
-        **kwargs
-      )
+      _merge_context_elements(_provided_context_elements, args, kwargs)
     end
 
     def self._combine(first, second)
@@ -85,6 +79,14 @@ module Pipes
         "'#{element}' has invalid type #{obj.class} (expected: #{cls})"
     end
     private_class_method :_raise_invalid_type
+
+    def self._merge_context_elements(elements, args, kwargs)
+      elements.merge!(
+        **args.map { |a| [a, nil] }.to_h,
+        **kwargs
+      )
+    end
+    private_class_method :_merge_context_elements
 
     private
 
