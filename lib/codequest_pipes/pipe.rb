@@ -61,24 +61,25 @@ module Pipes
 
     def self._validate_ctx(collection, ctx)
       collection.each do |element, klass|
-        _raise_missing_context(element) unless ctx.respond_to?(element)
-        next unless klass
-        obj = ctx.public_send(element)
-        _raise_invalid_type(element, obj, klass) unless obj.is_a?(klass)
+        _validate_value_presence(ctx, element)
+        _validate_value_type(ctx, element, klass) if klass
       end
     end
     private_class_method :_validate_ctx
 
-    def self._raise_missing_context(element)
+    def self._validate_value_presence(ctx, element)
+      return if ctx.respond_to?(element)
       raise MissingContext, "context does not respond to '#{element}'"
     end
-    private_class_method :_raise_missing_context
+    private_class_method :_validate_value_presence
 
-    def self._raise_invalid_type(element, obj, klass)
+    def self._validate_value_type(ctx, element, klass)
+      obj = ctx.public_send(element)
+      return if obj.is_a?(klass)
       raise InvalidType,
         "'#{element}' has invalid type #{obj.class} (expected: #{klass})"
     end
-    private_class_method :_raise_invalid_type
+    private_class_method :_validate_value_type
 
     def self._merge_context_elements(elements, args, kwargs)
       elements.merge!(
