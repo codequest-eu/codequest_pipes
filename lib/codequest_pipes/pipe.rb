@@ -60,11 +60,11 @@ module Pipes
     private_class_method :_provided_context_elements
 
     def self._validate_ctx(collection, ctx)
-      collection.each do |element, cls|
+      collection.each do |element, klass|
         _raise_missing_context(element) unless ctx.respond_to?(element)
-        next unless cls
+        next unless klass
         obj = ctx.public_send(element)
-        _raise_invalid_type(element, obj, cls) unless obj.is_a?(cls)
+        _raise_invalid_type(element, obj, klass) unless obj.is_a?(klass)
       end
     end
     private_class_method :_validate_ctx
@@ -74,9 +74,9 @@ module Pipes
     end
     private_class_method :_raise_missing_context
 
-    def self._raise_invalid_type(element, obj, cls)
+    def self._raise_invalid_type(element, obj, klass)
       raise InvalidType,
-        "'#{element}' has invalid type #{obj.class} (expected: #{cls})"
+        "'#{element}' has invalid type #{obj.class} (expected: #{klass})"
     end
     private_class_method :_raise_invalid_type
 
