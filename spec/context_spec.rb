@@ -18,13 +18,34 @@ describe Pipes::Context do
     it 'lists all fields' do
       subject.add(bacon: 'yum', raisins: 'bleh')
       expect(subject.inspect)
-        .to match(/bacon=\"yum\", raisins=\"bleh\", @error=nil/)
+        .to match(/bacon=\"yum\", raisins=\"bleh\", @errors=nil/)
     end
 
     it 'lists nested contexts' do
       subject.add(nested: Pipes::Context.new(foo: 'bar'))
       expect(subject.inspect)
-        .to match(/nested=#<Pipes::Context:0x\w+ foo="bar", @error=nil>,/)
+        .to match(/nested=#<Pipes::Context:0x\w+ foo="bar", @errors=nil>,/)
     end
   end # describe '#inspect'
+
+  describe '#add_errors' do
+    it 'adds error to error_collector' do
+      subject.add_errors(base: 'Error message')
+      subject.add_errors(
+        base: ['Another error message'],
+        user: 'User error message'
+      )
+      expect(subject.errors).to eq(
+        base: ['Error message', 'Another error message'],
+        user: ['User error message']
+      )
+    end
+  end # describe '#add_errors'
+
+  describe '#halt' do
+    it 'adds error to error collector :base' do
+      subject.halt('Some error')
+      expect(subject.error).to eq('Some error')
+    end
+  end # describe '#halt'
 end # describe Pipes::Context
