@@ -12,6 +12,23 @@ describe Pipes::Context do
       expect { subject.add(key: 'other_val') }
         .to raise_error(Pipes::Context::Override)
     end
+
+    it 'does not allow modifying existing fields' do
+      subject.add(key: 'val')
+      expect { subject.key << 'ue' }.to raise_error(FrozenError)
+    end
+
+    it 'allows rewriting existing mutable fields' do
+      subject.add({}, key: 'val')
+      expect { subject.add(key: 'other_val') }
+        .to change { subject.key }.from('val').to 'other_val'
+    end
+
+    it 'allows modifying existing mutable fields' do
+      subject.add({}, key: 'val')
+      expect { subject.key << 'ue' }
+        .to change { subject.key }.from('val').to 'value'
+    end
   end # describe '#add'
 
   describe '#inspect' do
