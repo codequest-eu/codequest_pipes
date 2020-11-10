@@ -154,7 +154,7 @@ describe Pipes::Pipe do
     context 'when required context element present with valid type' do
       let(:pipe) { ProvidingNumericChild | RequiringNumericChild }
 
-      it 'raises InvalidType' do
+      it 'does not raise' do
         expect { subject }.to_not raise_error
       end
     end # context 'when context element present with valid type'
