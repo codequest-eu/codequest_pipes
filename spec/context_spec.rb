@@ -7,6 +7,12 @@ describe Pipes::Context do
       expect(subject.key).to eq('val')
     end
 
+    it 'can add multiple fields' do
+      subject.add(bacon: 'yum', raisins: 'bleh')
+      expect(subject.bacon).to eq('yum')
+      expect(subject.raisins).to eq('bleh')
+    end
+
     it 'does not allow rewriting existing fields' do
       subject.add(key: 'val')
       expect { subject.add(key: 'other_val') }
@@ -15,12 +21,6 @@ describe Pipes::Context do
   end # describe '#add'
 
   describe '#inspect' do
-    it 'lists all fields' do
-      subject.add(bacon: 'yum', raisins: 'bleh')
-      expect(subject.inspect)
-        .to match(/bacon=\"yum\", raisins=\"bleh\", @errors=nil/)
-    end
-
     it 'lists nested contexts' do
       subject.add(nested: Pipes::Context.new(foo: 'bar'))
       expect(subject.inspect)
