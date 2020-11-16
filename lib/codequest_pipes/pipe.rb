@@ -20,18 +20,18 @@ module Pipes
     end
 
     def self.call(ctx)
-      return ctx if ctx.error
+      return ctx if ctx.errors.any?
       _validate_ctx(_required_context_elements, ctx)
       new(ctx).call
       _validate_ctx(_provided_context_elements, ctx)
     end
 
-    def self.require_context(*args)
-      _required_context_elements.push(*args)
+    def self.require_context(*args, **kwargs)
+      _merge_context_elements(_required_context_elements, args, kwargs)
     end
 
-    def self.provide_context(*args)
-      _provided_context_elements.push(*args)
+    def self.provide_context(*args, **kwargs)
+      _merge_context_elements(_provided_context_elements, args, kwargs)
     end
 
     def self._combine(first, second)
@@ -50,22 +50,44 @@ module Pipes
     private_class_method :_check_interface
 
     def self._required_context_elements
-      @required_context_elements ||= []
+      @required_context_elements ||= {}
     end
     private_class_method :_required_context_elements
 
     def self._provided_context_elements
-      @provided_context_elements ||= []
+      @provided_context_elements ||= {}
     end
     private_class_method :_provided_context_elements
 
     def self._validate_ctx(collection, ctx)
-      collection.each do |element|
-        next if ctx.respond_to?(element)
-        fail MissingContext, "context does not respond to '#{element}'"
+      collection.each do |element, klass|
+        _validate_value_presence(ctx, element)
+        _validate_value_type(ctx, element, klass) if klass
       end
     end
     private_class_method :_validate_ctx
+
+    def self._validate_value_presence(ctx, element)
+      return if ctx.respond_to?(element)
+      raise MissingContext, "context does not respond to '#{element}'"
+    end
+    private_class_method :_validate_value_presence
+
+    def self._validate_value_type(ctx, element, klass)
+      obj = ctx.public_send(element)
+      return if obj.is_a?(klass)
+      raise InvalidType,
+        "'#{element}' has invalid type #{obj.class} (expected: #{klass})"
+    end
+    private_class_method :_validate_value_type
+
+    def self._merge_context_elements(elements, args, kwargs)
+      elements.merge!(
+        **args.map { |a| [a, nil] }.to_h,
+        **kwargs
+      )
+    end
+    private_class_method :_merge_context_elements
 
     private
 

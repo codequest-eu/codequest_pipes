@@ -20,6 +20,45 @@ class BadApple < Pipes::Pipe
   end
 end
 
+class ProvidingChild < Parent
+  provide_context :bacon
+
+  def call
+    super
+    add(bacon: true)
+  end
+end # class ProvidingChild
+
+class ProvidingNumericChild < Parent
+  provide_context bacon: Numeric
+
+  def call
+    super
+    add(bacon: 4)
+  end
+end # class ProvidingNumericChild
+
+class NotProvidingChild < Parent
+  provide_context :bacon
+end # class NotProvidingChild
+
+class ProvidingInvalidChild < Parent
+  provide_context bacon: Numeric
+
+  def call
+    super
+    add(bacon: "yes, please")
+  end
+end # class ProvidingInvalidChild
+
+class RequiringChild < Parent
+  require_context :bacon
+end # class RequiringChild
+
+class RequiringNumericChild < Parent
+  require_context bacon: Numeric
+end # class RequiringNumericChild
+
 # NoMethodPipe will break with NoMethodError.
 class NoMethodPipe < Pipes::Pipe; end
 
@@ -55,15 +94,6 @@ describe Pipes::Pipe do
 
   describe '.provide_context' do
     context 'when context element provided' do
-      class ProvidingChild < Parent
-        provide_context :bacon
-
-        def call
-          super
-          add(bacon: true)
-        end
-      end # class ProvideChild
-
       let(:pipe) { Parent | ProvidingChild }
 
       it 'does not raise' do
@@ -72,16 +102,62 @@ describe Pipes::Pipe do
     end # context 'when context element provided'
 
     context 'when context element not provided' do
-      class NotProvidingChild < Parent
-        provide_context :bacon
-      end
-
       let(:pipe) { Parent | NotProvidingChild }
 
       it 'raises MissingContext' do
         expect { subject }.to raise_error Pipes::MissingContext
       end
     end # context 'when context element not provided'
+
+    context 'when context element with invalid type provided' do
+      let(:pipe) { Parent | ProvidingInvalidChild }
+
+      it 'raises InvalidType' do
+        expect { subject }.to raise_error Pipes::InvalidType
+      end
+    end # context 'when context element with invalid type provided'
+
+    context 'when context element with valid type provided' do
+      let(:pipe) { Parent | ProvidingNumericChild }
+
+      it 'does not raise' do
+        expect { subject }.to_not raise_error
+      end
+    end # context 'when context element with valid type provided'
+  end # describe '.provide_context'
+
+  describe '.require_context' do
+    context 'when required context element present' do
+      let(:pipe) { ProvidingChild | RequiringChild }
+
+      it 'does not raise' do
+        expect { subject }.to_not raise_error
+      end
+    end # context 'when required context element present'
+
+    context 'when required context element missing' do
+      let(:pipe) { Parent | RequiringChild }
+
+      it 'raises MissingContext' do
+        expect { subject }.to raise_error Pipes::MissingContext
+      end
+    end # context 'when context element missing'
+
+    context 'when required context element present with invalid type' do
+      let(:pipe) { ProvidingInvalidChild | RequiringNumericChild }
+
+      it 'raises InvalidType' do
+        expect { subject }.to raise_error Pipes::InvalidType
+      end
+    end # context 'when context element present with invalid type'
+
+    context 'when required context element present with valid type' do
+      let(:pipe) { ProvidingNumericChild | RequiringNumericChild }
+
+      it 'does not raise' do
+        expect { subject }.to_not raise_error
+      end
+    end # context 'when context element present with valid type'
   end # describe '.provide_context'
 
   describe 'pipes declared using Pipe::Closure' do
