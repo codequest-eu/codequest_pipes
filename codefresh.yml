@@ -6,6 +6,7 @@ steps:
     title: 'Build image'
     type: build
     image_name: codequest/pipes
+    registry: r.cfcr.io/codequest
 
   test_library:
     title: 'Test the gem'
