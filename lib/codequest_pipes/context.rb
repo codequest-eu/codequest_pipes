@@ -1,3 +1,5 @@
+require 'ice_nine'
+
 require 'codequest_pipes/context/error_collector'
 
 module Pipes
@@ -16,19 +18,23 @@ module Pipes
     # Context constructor.
     #
     # @param values [Hash]
-    def initialize(values = {})
-      add(values)
+    def initialize(values = {}, mutable_values = {})
       @error_collector = ErrorCollector.new
+      @mutable_values = Set.new
+      add(values, mutable_values)
     end
 
     # Method `add` allows adding new properties (as a Hash) to the Context.
     #
     # @param values [Hash]
-    def add(values)
+    def add(values, mutable_values = {})
       values.each do |key, val|
-        k_sym = key.to_sym
-        fail Override, "Property :#{key} already present" if respond_to?(k_sym)
-        define_singleton_method(k_sym) { val }
+        add_value(key.to_sym, IceNine.deep_freeze(val))
+      end
+
+      mutable_values.each do |key, val|
+        add_value(key.to_sym, val)
+        @mutable_values << key
       end
     end
 
@@ -101,6 +107,13 @@ module Pipes
 
     private
 
-    attr_reader :error_collector
+    attr_reader :error_collector, :mutable_values
+
+    def add_value(key, value)
+      if respond_to?(key) && !mutable_values.include?(key)
+        fail Override, "Property :#{key} already exists and is non-mutable"
+      end
+      define_singleton_method(key) { value }
+    end
   end # class Context
 end # module Pipes

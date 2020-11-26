@@ -63,7 +63,7 @@ end # class RequiringNumericChild
 class NoMethodPipe < Pipes::Pipe; end
 
 describe Pipes::Pipe do
-  let(:ctx) { Pipes::Context.new(flow: []) }
+  let(:ctx) { Pipes::Context.new({}, flow: []) }
 
   subject { pipe.call(ctx) }
 
